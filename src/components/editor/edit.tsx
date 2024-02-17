@@ -10,17 +10,6 @@ const Editor = (props: Props) => {
       <DragWrapper>
         <Circle />
       </DragWrapper>
-      <div
-        className="bg-blue-500 h-[100px] w-[100px] absolute right-0"
-        onMouseUp={() => {
-          console.log('mouse up');
-        }}
-        onMouseDown={() => {
-          console.log('mouse down');
-        }}>
-        {' '}
-        asdas
-      </div>
     </div>
   );
 };

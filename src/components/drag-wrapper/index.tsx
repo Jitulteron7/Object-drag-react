@@ -1,70 +1,92 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 type Props = {
   children: React.ReactNode;
 };
 
-type PositionType = {
-  x: number;
-  y: number;
-};
-const POSITION: PositionType = {
+const POSITION = {
   x: 0,
   y: 0,
 };
-
 const DragWrapper = (props: Props) => {
   const { children } = props;
-  const [propertyState, setPropertyState] = useState({
-    dragging: false,
+  const [state, setState] = useState({
+    isDragging: false,
     origin: POSITION,
-    translation: POSITION,
+    tranlation: POSITION,
   });
 
-  const dragStart = useCallback((e: React.MouseEvent) => {
-    const { clientX, clientY } = e;
-    setPropertyState((state) => ({
+  const handleMouseDown = useCallback(
+    ({ clientX, clientY }: React.MouseEvent) => {
+      console.log('mouse down', clientX, clientY);
+
+      setState((state) => ({
+        ...state,
+        isDragging: true,
+        origin: {
+          x: state.origin.x != 0 ? state.origin.x : clientX,
+          y: state.origin.y != 0 ? state.origin.y : clientY,
+        },
+      }));
+    },
+    []
+  );
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      const { clientX, clientY } = e;
+      if (state.isDragging) {
+        const translation = {
+          x: clientX - state.origin.x,
+          y: clientY - state.origin.y,
+        };
+        console.log('mouse move', translation);
+        setState((state) => ({
+          ...state,
+          tranlation: translation,
+        }));
+      }
+    },
+    [state.origin]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    console.log('mouse up');
+    setState((state) => ({
       ...state,
-      dragging: true,
-      origin: { x: clientX, y: clientY },
+      isDragging: false,
     }));
   }, []);
 
-  
+  useEffect(() => {
+    console.log(state.isDragging, 'state.isDragging');
 
-  const dragging = (e: React.MouseEvent) => {
-    console.log('dragging');
-    if (propertyState.dragging) {
-      const left = e.screenX - propertyState.diffX;
-      const top = e.screenY - propertyState.diffY;
-
-      setPropertyState({
-        ...propertyState,
-        styles: {
-          left: left,
-          top: top,
-        },
-      });
+    if (state.isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
     }
-  };
 
-  const onDragEnd = () => {
-    console.log('onDragEnd');
-    setPropertyState({
-      ...propertyState,
-      dragging: false,
-    });
-  };
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [state.isDragging, handleMouseUp, handleMouseMove]);
+
+  const style = useMemo(
+    (): Partial<React.CSSProperties> => ({
+      cursor: state.isDragging ? 'move' : '',
+      transform: `translate(${state.tranlation.x}px, ${state.tranlation.y}px)`,
+      transition: state.isDragging ? 'none' : 'transform 500ms',
+      zIndex: state.isDragging ? '2' : '1',
+      position: state.isDragging ? 'absolute' : 'relative',
+      width: 'fit-content',
+      userSelect: state.isDragging ? 'none' : 'element',
+    }),
+    [state.isDragging, state.tranlation]
+  );
 
   return (
-    <div
-      className={`absolute cursor-move top-0 left-0 w-[200px] h-[200px] flex justify-center items-center ${
-        propertyState.dragging ? 'bg-blue-500' : 'bg-yellow-500'
-      } ${propertyState.dragging ? 'user-select:none' : ''}`}
-      style={{ ...propertyState.styles }}
-      onMouseDown={dragStart}
-      onMouseMove={dragging}
-      onMouseUp={onDragEnd}>
+    <div style={{ ...style }} onMouseDown={handleMouseDown} className="">
       {children}
     </div>
   );

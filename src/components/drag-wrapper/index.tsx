@@ -1,31 +1,36 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 
 type Props = {
   children: React.ReactNode;
 };
 
+type PositionType = {
+  x: number;
+  y: number;
+};
+const POSITION: PositionType = {
+  x: 0,
+  y: 0,
+};
+
 const DragWrapper = (props: Props) => {
   const { children } = props;
   const [propertyState, setPropertyState] = useState({
-    diffX: 0,
-    diffY: 0,
     dragging: false,
-    styles: {},
+    origin: POSITION,
+    translation: POSITION,
   });
 
-  const dragStart = (e: React.MouseEvent) => {
-    console.log('dragStart');
-
-    const diffX = e.screenX - e.currentTarget.getBoundingClientRect().left;
-    const diffY = e.screenY - e.currentTarget.getBoundingClientRect().top;
-
-    setPropertyState({
-      ...propertyState,
-      diffX,
-      diffY,
+  const dragStart = useCallback((e: React.MouseEvent) => {
+    const { clientX, clientY } = e;
+    setPropertyState((state) => ({
+      ...state,
       dragging: true,
-    });
-  };
+      origin: { x: clientX, y: clientY },
+    }));
+  }, []);
+
+  
 
   const dragging = (e: React.MouseEvent) => {
     console.log('dragging');

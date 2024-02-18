@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 type Props = {
   children: React.ReactNode;
@@ -16,31 +22,31 @@ const DragWrapper = (props: Props) => {
     tranlation: POSITION,
   });
 
-  const handleMouseDown = useCallback(
-    ({ clientX, clientY }: React.MouseEvent) => {
-      console.log('mouse down', clientX, clientY);
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    const { clientX, clientY } = e;
+    const { left, top } = (e.target as Element).getBoundingClientRect();
 
-      setState((state) => ({
-        ...state,
-        isDragging: true,
-        origin: {
-          x: state.origin.x != 0 ? state.origin.x : clientX,
-          y: state.origin.y != 0 ? state.origin.y : clientY,
-        },
-      }));
-    },
-    []
-  );
+    setState((state) => ({
+      ...state,
+      isDragging: true,
+      origin: {
+        x: clientX - left,
+        y: clientY - top,
+      },
+    }));
+  }, []);
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
+      console.log('mouse movement', e.clientX - e.offsetX, e.pageX);
+
       const { clientX, clientY } = e;
       if (state.isDragging) {
         const translation = {
           x: clientX - state.origin.x,
           y: clientY - state.origin.y,
         };
-        console.log('mouse move', translation);
+
         setState((state) => ({
           ...state,
           tranlation: translation,
@@ -52,6 +58,7 @@ const DragWrapper = (props: Props) => {
 
   const handleMouseUp = useCallback(() => {
     console.log('mouse up');
+
     setState((state) => ({
       ...state,
       isDragging: false,
@@ -75,18 +82,26 @@ const DragWrapper = (props: Props) => {
   const style = useMemo(
     (): Partial<React.CSSProperties> => ({
       cursor: state.isDragging ? 'move' : '',
-      transform: `translate(${state.tranlation.x}px, ${state.tranlation.y}px)`,
+      //   transform: `translate(${state.tranlation.x}px, ${state.tranlation.y}px)`,
+      top: state.tranlation.y,
+      left: state.tranlation.x,
       transition: state.isDragging ? 'none' : 'transform 500ms',
       zIndex: state.isDragging ? '2' : '1',
       position: state.isDragging ? 'absolute' : 'relative',
       width: 'fit-content',
       userSelect: state.isDragging ? 'none' : 'element',
+      opacity: state.isDragging ? 0.7 : 1,
     }),
     [state.isDragging, state.tranlation]
   );
 
+  const elmRef = useRef<HTMLDivElement>(null);
   return (
-    <div style={{ ...style }} onMouseDown={handleMouseDown} className="">
+    <div
+      ref={elmRef}
+      style={{ ...style }}
+      onMouseDown={handleMouseDown}
+      className="testing">
       {children}
     </div>
   );

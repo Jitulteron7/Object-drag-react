@@ -55,7 +55,7 @@ export const editorSlice = createSlice({
         ...state.value.innerElement,
         styles: {
           height: action.payload.styles?.height as number,
-          width: action.payload.styles?.height as number,
+          width: action.payload.styles?.width as number,
         },
       };
     },
@@ -72,9 +72,8 @@ export const editorSlice = createSlice({
         },
       };
     },
-    isSelectedWrapper: (state) => {
-      const orgState = state.value.editorWrapper.isSelected;
-      state.value.editorWrapper.isSelected = !orgState;
+    isSelectedWrapper: (state, action: PayloadAction<boolean>) => {
+      state.value.editorWrapper.isSelected = action.payload;
     },
   },
 });

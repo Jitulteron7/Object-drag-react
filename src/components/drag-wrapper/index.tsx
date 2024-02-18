@@ -5,6 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 
 type Props = {
   children: React.ReactNode;
@@ -21,7 +23,9 @@ const DragWrapper = (props: Props) => {
     origin: POSITION,
     tranlation: POSITION,
   });
-
+  const { innerElement } = useSelector(
+    (state: RootState) => state.editor.value
+  );
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     const { clientX, clientY } = e;
     const { left, top } = (e.target as Element).getBoundingClientRect();
@@ -88,7 +92,8 @@ const DragWrapper = (props: Props) => {
       transition: state.isDragging ? 'none' : 'transform 500ms',
       zIndex: state.isDragging ? '2' : '1',
       position: state.isDragging ? 'absolute' : 'relative',
-      width: 'fit-content',
+      width: '100%',
+      height: '100%',
       userSelect: state.isDragging ? 'none' : 'element',
       opacity: state.isDragging ? 0.7 : 1,
     }),
@@ -97,11 +102,7 @@ const DragWrapper = (props: Props) => {
 
   const elmRef = useRef<HTMLDivElement>(null);
   return (
-    <div
-      ref={elmRef}
-      style={{ ...style }}
-      onMouseDown={handleMouseDown}
-      className="testing">
+    <div ref={elmRef} style={{ ...style }} onMouseDown={handleMouseDown}>
       {children}
     </div>
   );

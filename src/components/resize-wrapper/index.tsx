@@ -12,8 +12,8 @@ type Props = {
 };
 
 const POSITION = {
-  x: 0,
-  y: 0,
+  x: 100,
+  y: 100,
 };
 const ResizeWrapper = (props: Props) => {
   const { editorWrapper, innerElement } = useSelector(
@@ -53,24 +53,26 @@ const ResizeWrapper = (props: Props) => {
       if (state.isResize) {
         const orgHeight = innerElement.styles.height;
         const orgWidth = innerElement.styles.width;
-        const deltaX = e.clientX - state.resizeOrg.x;
-        const deltaY = e.clientY - state.resizeOrg.y;
+
         console.log('direction', state.dir);
 
         let newHeight = orgHeight;
         let newWidth = orgWidth;
-
+        let left = 0;
+        let right = 0;
         switch (state.dir) {
           case 0:
-            newHeight = orgHeight;
+            newHeight += e.clientY - state.resizeOrg.y;
             break;
           case 1:
-            newWidth += deltaX;
+            newWidth += e.clientX - state.resizeOrg.x;
             break;
           case 2:
-            newHeight += deltaY;
+            newHeight += e.clientY - state.resizeOrg.y;
             break;
           case 3:
+            newWidth -= e.clientX - state.resizeOrg.x;
+
             break;
           default:
             setState((state) => ({
@@ -125,6 +127,8 @@ const ResizeWrapper = (props: Props) => {
       transition: state.isResize ? 'none' : 'transform 500ms',
       zIndex: 3,
       position: state.isResize ? 'absolute' : 'relative',
+      top: POSITION.y,
+      left: POSITION.x,
       width: 'fit-content',
       userSelect: state.isResize ? 'none' : 'element',
       opacity: state.isResize ? 0.7 : 1,
@@ -154,7 +158,7 @@ const ResizeWrapper = (props: Props) => {
             top: '-4px',
             left: 'calc(50% - 2.5px)',
             zIndex: 2,
-            cursor: 'e-resize',
+            cursor: 'n-resize',
             pointerEvents: 'all',
             border: '1px solid #fff',
             borderRadius: 0,
@@ -193,7 +197,7 @@ const ResizeWrapper = (props: Props) => {
             top: 'calc(50% - 2.5px)',
             left: '-2.5px',
             zIndex: 2,
-            cursor: 's-resize',
+            cursor: 'w-resize',
             pointerEvents: 'all',
             border: '1px solid #fff',
             borderRadius: 0,

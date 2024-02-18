@@ -14,7 +14,7 @@ const Editor = (props: Props) => {
   };
   return (
     <div
-      className="text-black bg-red-500 w-[100vw] h-[100vh] p-5 flex justify-center items-center"
+      className="text-black bg-red-500 w-[100vw] h-[100vh]"
       onClick={handleEditorClick}>
       <ResizeWrapper>
         <DragWrapper>

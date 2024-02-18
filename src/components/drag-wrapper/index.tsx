@@ -86,7 +86,6 @@ const DragWrapper = (props: Props) => {
   const style = useMemo(
     (): Partial<React.CSSProperties> => ({
       cursor: state.isDragging ? 'move' : '',
-      //   transform: `translate(${state.tranlation.x}px, ${state.tranlation.y}px)`,
       top: state.tranlation.y,
       left: state.tranlation.x,
       transition: state.isDragging ? 'none' : 'transform 500ms',

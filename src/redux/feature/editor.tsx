@@ -13,10 +13,7 @@ export interface EditorInnerElement {
     x: number;
     y: number;
   };
-  styles: {
-    height: number;
-    width: number;
-  };
+  styles: React.CSSProperties;
 }
 
 export interface EditorWrapper {
@@ -33,6 +30,8 @@ const initialState: EditorState = {
       styles: {
         height: 100,
         width: 100,
+        left: 100,
+        top: 100,
       },
     },
     editorWrapper: {
@@ -54,8 +53,8 @@ export const editorSlice = createSlice({
       state.value.innerElement = {
         ...state.value.innerElement,
         styles: {
-          height: action.payload.styles?.height as number,
-          width: action.payload.styles?.width as number,
+          ...state.value.innerElement.styles,
+          ...action.payload.styles,
         },
       };
     },

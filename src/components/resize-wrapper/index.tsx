@@ -56,13 +56,15 @@ const ResizeWrapper = (props: Props) => {
 
         console.log('direction', state.dir);
 
-        let newHeight = orgHeight;
-        let newWidth = orgWidth;
-        let left = 0;
-        let right = 0;
+        let newHeight = orgHeight as number;
+        let newWidth = orgWidth as number;
+        let left = innerElement.styles.left as number;
+        let top = innerElement.styles.top as number;
+
         switch (state.dir) {
           case 0:
-            newHeight += e.clientY - state.resizeOrg.y;
+            newHeight -= e.clientY - state.resizeOrg.y;
+            top += e.clientY - state.resizeOrg.y;
             break;
           case 1:
             newWidth += e.clientX - state.resizeOrg.x;
@@ -72,7 +74,7 @@ const ResizeWrapper = (props: Props) => {
             break;
           case 3:
             newWidth -= e.clientX - state.resizeOrg.x;
-
+            left += e.clientX - state.resizeOrg.x;
             break;
           default:
             setState((state) => ({
@@ -80,7 +82,6 @@ const ResizeWrapper = (props: Props) => {
               dir: -1,
             }));
         }
-        console.log(newHeight, newWidth, 'org');
 
         const testing = {
           height: newHeight,
@@ -93,6 +94,8 @@ const ResizeWrapper = (props: Props) => {
           styles: {
             height: newHeight,
             width: newWidth,
+            left: left,
+            top: top,
           },
         };
         console.log(innerElement.styles, 'from func style');
@@ -127,8 +130,8 @@ const ResizeWrapper = (props: Props) => {
       transition: state.isResize ? 'none' : 'transform 500ms',
       zIndex: 3,
       position: state.isResize ? 'absolute' : 'relative',
-      top: POSITION.y,
-      left: POSITION.x,
+      top: innerElement.styles.top,
+      left: innerElement.styles.left,
       width: 'fit-content',
       userSelect: state.isResize ? 'none' : 'element',
       opacity: state.isResize ? 0.7 : 1,
@@ -144,12 +147,20 @@ const ResizeWrapper = (props: Props) => {
     dispatch(isSelectedWrapper(true));
   };
   return (
-    <div onClick={handleSelect} style={{ ...style }}>
+    <div
+      onClick={handleSelect}
+      style={{
+        ...innerElement.styles,
+        boxShadow: '0 0 0 1px #000',
+        userSelect: state.isResize ? 'none' : 'element',
+        position: 'absolute',
+      }}>
       <div
-        className="relative top-0 left-0 w-[100%] h-[100%]"
+        className="relative  w-[100%] h-[100%]"
         style={{
-          width: innerElement.styles.width,
-          height: innerElement.styles.height,
+          ...innerElement.styles,
+          left: 0,
+          top: 0,
         }}>
         <div
           onMouseDown={(e) => handleWrapperMouseDown(e, 0)}

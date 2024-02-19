@@ -17,9 +17,9 @@ const Editor = (props: Props) => {
       className="text-black bg-red-500 w-[100vw] h-[100vh]"
       onClick={handleEditorClick}>
       <ResizeWrapper>
-        <DragWrapper>
-          <Circle />
-        </DragWrapper>
+        {/* <DragWrapper> */}
+        <Circle />
+        {/* </DragWrapper> */}
       </ResizeWrapper>
     </div>
   );

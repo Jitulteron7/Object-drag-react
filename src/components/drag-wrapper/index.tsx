@@ -5,8 +5,9 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
+import { innerElementStyle } from '../../redux/feature/editor';
 
 type Props = {
   children: React.ReactNode;
@@ -23,6 +24,8 @@ const DragWrapper = (props: Props) => {
     origin: POSITION,
     tranlation: POSITION,
   });
+
+  const dispatch = useDispatch();
   const { innerElement } = useSelector(
     (state: RootState) => state.editor.value
   );
@@ -70,8 +73,6 @@ const DragWrapper = (props: Props) => {
   }, []);
 
   useEffect(() => {
-    console.log(state.isDragging, 'state.isDragging');
-
     if (state.isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
@@ -91,17 +92,31 @@ const DragWrapper = (props: Props) => {
       transition: state.isDragging ? 'none' : 'transform 500ms',
       zIndex: state.isDragging ? '2' : '1',
       position: state.isDragging ? 'absolute' : 'relative',
-      width: '100%',
-      height: '100%',
       userSelect: state.isDragging ? 'none' : 'element',
       opacity: state.isDragging ? 0.7 : 1,
     }),
     [state.isDragging, state.tranlation]
   );
 
+  useEffect(() => {
+    const obj = {
+      styles: {
+        ...style,
+      },
+    };
+    dispatch(innerElementStyle(obj));
+  }, [style]);
+
   const elmRef = useRef<HTMLDivElement>(null);
   return (
-    <div ref={elmRef} style={{ ...style }} onMouseDown={handleMouseDown}>
+    <div
+      ref={elmRef}
+      style={{
+        width: '100%',
+        height: '100%',
+      }}
+      // onMouseDown={handleMouseDown}
+    >
       {children}
     </div>
   );

@@ -11,14 +11,15 @@ type Props = {
   children: React.ReactNode;
 };
 
-const POSITION = {
-  x: 100,
-  y: 100,
-};
 const ResizeWrapper = (props: Props) => {
   const { editorWrapper, innerElement } = useSelector(
     (state: RootState) => state.editor.value
   );
+
+  const POSITION = {
+    x: innerElement.styles.width as number,
+    y: innerElement.styles.height as number,
+  };
 
   const dispatch = useDispatch();
 

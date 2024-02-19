@@ -13,12 +13,16 @@ type Props = {
   children: React.ReactNode;
 };
 
-const POSITION = {
-  x: 0,
-  y: 0,
-};
 const DragWrapper = (props: Props) => {
   const { children } = props;
+  const { innerElement } = useSelector(
+    (state: RootState) => state.editor.value
+  );
+
+  const POSITION = {
+    x: innerElement.styles.height as number,
+    y: innerElement.styles.width as number,
+  };
   const [state, setState] = useState({
     isDragging: false,
     origin: POSITION,
@@ -26,9 +30,7 @@ const DragWrapper = (props: Props) => {
   });
 
   const dispatch = useDispatch();
-  const { innerElement } = useSelector(
-    (state: RootState) => state.editor.value
-  );
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     const { clientX, clientY } = e;
     const { left, top } = (e.target as Element).getBoundingClientRect();
@@ -115,8 +117,7 @@ const DragWrapper = (props: Props) => {
         width: '100%',
         height: '100%',
       }}
-      // onMouseDown={handleMouseDown}
-    >
+      onMouseDown={handleMouseDown}>
       {children}
     </div>
   );

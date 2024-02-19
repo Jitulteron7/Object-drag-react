@@ -4,15 +4,28 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 export interface EditorState {
   value: {
     innerElement: EditorInnerElement;
+    innerElements: EditorInnerElement[];
     editorWrapper: EditorWrapper;
   };
 }
 
 export interface EditorInnerElement {
+  id?: string;
   origin: {
     x: number;
     y: number;
   };
+  tranlation?: { x: number; y: number };
+  resizeOrg: {
+    x: number;
+    y: number;
+  };
+
+  dir?: number;
+  isResize?: boolean;
+  isSelected?: boolean;
+  isDragging?: boolean;
+
   styles: React.CSSProperties;
 }
 
@@ -24,8 +37,17 @@ const initialState: EditorState = {
   value: {
     innerElement: {
       origin: {
-        x: 0,
-        y: 0,
+        x: 100,
+        y: 100,
+      },
+      tranlation: { x: 100, y: 100 },
+      dir: -1,
+      isResize: false,
+      isSelected: false,
+      isDragging: false,
+      resizeOrg: {
+        x: 100,
+        y: 100,
       },
       styles: {
         height: 100,
@@ -34,6 +56,7 @@ const initialState: EditorState = {
         top: 100,
       },
     },
+    innerElements: [],
     editorWrapper: {
       isSelected: false,
     },
@@ -48,8 +71,6 @@ export const editorSlice = createSlice({
       state,
       action: PayloadAction<Partial<EditorInnerElement>>
     ) => {
-      console.log(action.payload.styles, 'stylse');
-
       state.value.innerElement = {
         ...state.value.innerElement,
         styles: {
@@ -57,6 +78,43 @@ export const editorSlice = createSlice({
           ...action.payload.styles,
         },
       };
+    },
+
+    innerElementsEdit: (
+      state,
+      action: PayloadAction<Partial<EditorInnerElement>>
+    ) => {
+      state.value.innerElements = state.value.innerElements.map((innElm) => {
+        if (innElm.id === action.payload.id) {
+          return {
+            ...innElm,
+            ...action.payload,
+          };
+        } else {
+          return innElm;
+        }
+      });
+    },
+    addElementInEditor: (state, action: PayloadAction<EditorInnerElement>) => {
+      state.value.innerElements.push(action.payload);
+    },
+    innerElementsOrigin: (
+      state,
+      action: PayloadAction<Partial<EditorInnerElement>>
+    ) => {
+      state.value.innerElements = state.value.innerElements.map((innElm) => {
+        if (innElm.id === action.payload.id) {
+          return {
+            ...innElm,
+            origin: {
+              x: action.payload.origin?.x as number,
+              y: action.payload.origin?.y as number,
+            },
+          };
+        } else {
+          return innElm;
+        }
+      });
     },
 
     innerElementOrigin: (
@@ -78,6 +136,11 @@ export const editorSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { isSelectedWrapper, innerElementStyle } = editorSlice.actions;
+export const {
+  isSelectedWrapper,
+  innerElementStyle,
+  addElementInEditor,
+  innerElementsEdit,
+} = editorSlice.actions;
 
 export default editorSlice.reducer;

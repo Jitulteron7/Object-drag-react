@@ -4,28 +4,28 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   EditorInnerElement,
   innerElementStyle,
+  innerElementsEdit,
   isSelectedWrapper,
 } from '../../redux/feature/editor';
 
 type Props = {
   children: React.ReactNode;
+  elm: EditorInnerElement;
 };
 
 const ResizeWrapper = (props: Props) => {
-  const { editorWrapper, innerElement } = useSelector(
-    (state: RootState) => state.editor.value
-  );
-
+  // const { editorWrapper, innerElement } = useSelector(
+  //   (state: RootState) => state.editor.value
+  // );
+  const { children, elm } = props;
   const POSITION = {
-    x: innerElement.styles.width as number,
-    y: innerElement.styles.height as number,
+    x: elm.resizeOrg.x as number,
+    y: elm.resizeOrg.x as number,
   };
 
   const dispatch = useDispatch();
 
-  const { children } = props;
   const [state, setState] = useState({
-    origin: POSITION,
     resizeOrg: POSITION,
     dir: -1,
     isResize: false,
@@ -34,62 +34,68 @@ const ResizeWrapper = (props: Props) => {
 
   const handleWrapperMouseDown = useCallback(
     (e: React.MouseEvent, dir: number) => {
-      console.log(e.clientX, 'clietx');
-
-      setState((state) => ({
-        ...state,
-        resizeOrg: {
-          x: e.clientX,
-          y: e.clientY,
-        },
-        dir: dir,
-        isResize: true,
-      }));
+      // setState((state) => ({
+      //   ...state,
+      //   resizeOrg: {
+      //     x: e.clientX,
+      //     y: e.clientY,
+      //   },
+      //   dir: dir,
+      //   isResize: true,
+      // }));
+      dispatch(
+        innerElementsEdit({
+          ...elm,
+          resizeOrg: {
+            x: e.clientX,
+            y: e.clientY,
+          },
+          dir: dir,
+          isResize: true,
+        })
+      );
     },
-    [state.resizeOrg]
+    [elm.resizeOrg]
   );
 
   const handleWrapperMouseMove = useCallback(
     (e: MouseEvent) => {
-      if (state.isResize) {
-        const orgHeight = innerElement.styles.height;
-        const orgWidth = innerElement.styles.width;
-
-        console.log('direction', state.dir);
+      if (elm.isResize) {
+        const orgHeight = elm.styles.height;
+        const orgWidth = elm.styles.width;
 
         let newHeight = orgHeight as number;
         let newWidth = orgWidth as number;
-        let left = innerElement.styles.left as number;
-        let top = innerElement.styles.top as number;
+        let left = elm.styles.left as number;
+        let top = elm.styles.top as number;
 
-        switch (state.dir) {
+        switch (elm.dir) {
           case 0:
-            newHeight -= e.clientY - state.resizeOrg.y;
-            top += e.clientY - state.resizeOrg.y;
+            newHeight -= e.clientY - elm.resizeOrg.y;
+            top += e.clientY - elm.resizeOrg.y;
             break;
           case 1:
-            newWidth += e.clientX - state.resizeOrg.x;
+            newWidth += e.clientX - elm.resizeOrg.x;
             break;
           case 2:
-            newHeight += e.clientY - state.resizeOrg.y;
+            newHeight += e.clientY - elm.resizeOrg.y;
             break;
           case 3:
-            newWidth -= e.clientX - state.resizeOrg.x;
-            left += e.clientX - state.resizeOrg.x;
+            newWidth -= e.clientX - elm.resizeOrg.x;
+            left += e.clientX - elm.resizeOrg.x;
             break;
           default:
-            setState((state) => ({
-              ...state,
-              dir: -1,
-            }));
+            // setState((state) => ({
+            //   ...state,
+            //   dir: -1,
+            // }));
+            dispatch(
+              innerElementsEdit({
+                ...elm,
+                dir: -1,
+              })
+            );
         }
-
-        const testing = {
-          height: newHeight,
-          width: newWidth,
-        };
-
-        console.log(testing, 'testing');
 
         const obj: Partial<EditorInnerElement> = {
           styles: {
@@ -99,22 +105,35 @@ const ResizeWrapper = (props: Props) => {
             top: top,
           },
         };
-        console.log(innerElement.styles, 'from func style');
-        dispatch(innerElementStyle(obj));
+        // console.log(innerElement.styles, 'from func style');
+        dispatch(
+          innerElementsEdit({
+            ...elm,
+            styles: obj.styles,
+          })
+        );
+        // dispatch(innerElementStyle(obj));
       }
     },
-    [state.resizeOrg]
+    [elm.resizeOrg]
   );
 
   const handleWrapperMouseUp = useCallback(() => {
-    setState((state) => ({
-      ...state,
-      isResize: false,
-    }));
+    // setState((state) => ({
+    //   ...state,
+    //   isResize: false,
+    // }));
+
+    dispatch(
+      innerElementsEdit({
+        ...elm,
+        isResize: false,
+      })
+    );
   }, []);
 
   useEffect(() => {
-    if (state.isResize) {
+    if (elm.isResize) {
       window.addEventListener('mousemove', handleWrapperMouseMove);
       window.addEventListener('mouseup', handleWrapperMouseUp);
     }
@@ -123,24 +142,24 @@ const ResizeWrapper = (props: Props) => {
       window.removeEventListener('mousemove', handleWrapperMouseMove);
       window.removeEventListener('mouseup', handleWrapperMouseUp);
     };
-  }, [state.isResize, handleWrapperMouseUp, handleWrapperMouseMove]);
+  }, [elm.isResize, handleWrapperMouseUp, handleWrapperMouseMove]);
 
   const style = useMemo(
     (): Partial<React.CSSProperties> => ({
-      cursor: state.isResize ? 'move' : '',
-      transition: state.isResize ? 'none' : 'transform 500ms',
+      cursor: elm.isResize ? 'move' : '',
+      transition: elm.isResize ? 'none' : 'transform 500ms',
       zIndex: 3,
-      position: state.isResize ? 'absolute' : 'relative',
-      top: innerElement.styles.top,
-      left: innerElement.styles.left,
+      position: elm.isResize ? 'absolute' : 'relative',
+      top: elm.styles.top,
+      left: elm.styles.left,
       width: 'fit-content',
-      userSelect: state.isResize ? 'none' : 'element',
-      opacity: state.isResize ? 0.7 : 1,
+      userSelect: elm.isResize ? 'none' : 'element',
+      opacity: elm.isResize ? 0.7 : 1,
       // border: editorWrapper.isSelected ? '2px solid black' : '',
       // padding: editorWrapper.isSelected ? 2 : 0,
       boxShadow: '0 0 0 1px #000',
     }),
-    [state.isResize, editorWrapper.isSelected]
+    [elm.isResize, elm.isSelected]
   );
 
   const handleSelect = (e: React.MouseEvent) => {
@@ -151,15 +170,15 @@ const ResizeWrapper = (props: Props) => {
     <div
       onClick={handleSelect}
       style={{
-        ...innerElement.styles,
+        ...elm.styles,
         boxShadow: '0 0 0 1px #000',
-        userSelect: state.isResize ? 'none' : 'element',
+        userSelect: elm.isResize ? 'none' : 'element',
         position: 'absolute',
       }}>
       <div
         className="relative  w-[100%] h-[100%]"
         style={{
-          ...innerElement.styles,
+          ...elm.styles,
           left: 0,
           top: 0,
         }}>

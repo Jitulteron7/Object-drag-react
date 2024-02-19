@@ -7,21 +7,26 @@ import React, {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
-import { innerElementStyle } from '../../redux/feature/editor';
+import {
+  EditorInnerElement,
+  innerElementStyle,
+  innerElementsEdit,
+} from '../../redux/feature/editor';
 
 type Props = {
   children: React.ReactNode;
+  elm: EditorInnerElement;
 };
 
 const DragWrapper = (props: Props) => {
-  const { children } = props;
+  const { children, elm } = props;
   const { innerElement } = useSelector(
     (state: RootState) => state.editor.value
   );
 
   const POSITION = {
-    x: innerElement.styles.height as number,
-    y: innerElement.styles.width as number,
+    x: elm.origin.x as number,
+    y: elm.origin.y as number,
   };
   const [state, setState] = useState({
     isDragging: false,
@@ -35,14 +40,25 @@ const DragWrapper = (props: Props) => {
     const { clientX, clientY } = e;
     const { left, top } = (e.target as Element).getBoundingClientRect();
 
-    setState((state) => ({
-      ...state,
-      isDragging: true,
-      origin: {
-        x: clientX - left,
-        y: clientY - top,
-      },
-    }));
+    // setState((state) => ({
+    //   ...state,
+    //   isDragging: true,
+    //   origin: {
+    //     x: clientX - left,
+    //     y: clientY - top,
+    //   },
+    // }));
+
+    dispatch(
+      innerElementsEdit({
+        ...elm,
+        isDragging: true,
+        origin: {
+          x: clientX - left,
+          y: clientY - top,
+        },
+      })
+    );
   }, []);
 
   const handleMouseMove = useCallback(
@@ -50,32 +66,41 @@ const DragWrapper = (props: Props) => {
       console.log('mouse movement', e.clientX - e.offsetX, e.pageX);
 
       const { clientX, clientY } = e;
-      if (state.isDragging) {
+      if (elm.isDragging) {
         const translation = {
-          x: clientX - state.origin.x,
-          y: clientY - state.origin.y,
+          x: clientX - elm.origin.x,
+          y: clientY - elm.origin.y,
         };
 
-        setState((state) => ({
-          ...state,
-          tranlation: translation,
-        }));
+        // setState((state) => ({
+        //   ...state,
+        //   tranlation: translation,
+        // }));
+
+        dispatch(
+          innerElementsEdit({
+            ...elm,
+            tranlation: translation,
+          })
+        );
       }
     },
-    [state.origin]
+    [elm.origin]
   );
 
   const handleMouseUp = useCallback(() => {
     console.log('mouse up');
 
-    setState((state) => ({
-      ...state,
-      isDragging: false,
-    }));
+    dispatch(
+      innerElementsEdit({
+        ...elm,
+        isDragging: false,
+      })
+    );
   }, []);
 
   useEffect(() => {
-    if (state.isDragging) {
+    if (elm.isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
     }
@@ -84,20 +109,20 @@ const DragWrapper = (props: Props) => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [state.isDragging, handleMouseUp, handleMouseMove]);
+  }, [elm.isDragging, handleMouseUp, handleMouseMove]);
 
   const style = useMemo(
     (): Partial<React.CSSProperties> => ({
-      cursor: state.isDragging ? 'move' : '',
-      top: state.tranlation.y,
-      left: state.tranlation.x,
-      transition: state.isDragging ? 'none' : 'transform 500ms',
-      zIndex: state.isDragging ? '2' : '1',
-      position: state.isDragging ? 'absolute' : 'relative',
-      userSelect: state.isDragging ? 'none' : 'element',
-      opacity: state.isDragging ? 0.7 : 1,
+      cursor: elm.isDragging ? 'move' : '',
+      top: elm?.tranlation?.y,
+      left: elm?.tranlation?.x,
+      transition: elm.isDragging ? 'none' : 'transform 500ms',
+      zIndex: elm.isDragging ? '2' : '1',
+      position: elm.isDragging ? 'absolute' : 'relative',
+      userSelect: elm.isDragging ? 'none' : 'element',
+      opacity: elm.isDragging ? 0.7 : 1,
     }),
-    [state.isDragging, state.tranlation]
+    [elm.isDragging, elm.tranlation]
   );
 
   useEffect(() => {
@@ -106,7 +131,13 @@ const DragWrapper = (props: Props) => {
         ...style,
       },
     };
-    dispatch(innerElementStyle(obj));
+
+    dispatch(
+      innerElementsEdit({
+        ...elm,
+        styles: obj.styles,
+      })
+    );
   }, [style]);
 
   const elmRef = useRef<HTMLDivElement>(null);

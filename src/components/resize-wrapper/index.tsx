@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { RootState } from '../../redux/store';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   EditorInnerElement,
-  innerElementStyle,
   innerElementsEdit,
   isSelectedWrapper,
 } from '../../redux/feature/editor';
@@ -14,35 +12,12 @@ type Props = {
 };
 
 const ResizeWrapper = (props: Props) => {
-  // const { editorWrapper, innerElement } = useSelector(
-  //   (state: RootState) => state.editor.value
-  // );
   const { children, elm } = props;
-  const POSITION = {
-    x: elm.resizeOrg.x as number,
-    y: elm.resizeOrg.x as number,
-  };
 
   const dispatch = useDispatch();
 
-  const [state, setState] = useState({
-    resizeOrg: POSITION,
-    dir: -1,
-    isResize: false,
-    isSelected: false,
-  });
-
   const handleWrapperMouseDown = useCallback(
     (e: React.MouseEvent, dir: number) => {
-      // setState((state) => ({
-      //   ...state,
-      //   resizeOrg: {
-      //     x: e.clientX,
-      //     y: e.clientY,
-      //   },
-      //   dir: dir,
-      //   isResize: true,
-      // }));
       dispatch(
         innerElementsEdit({
           ...elm,
@@ -52,10 +27,11 @@ const ResizeWrapper = (props: Props) => {
           },
           dir: dir,
           isResize: true,
+          from: 'mousedown',
         })
       );
     },
-    [elm.resizeOrg]
+    [elm]
   );
 
   const handleWrapperMouseMove = useCallback(
@@ -85,14 +61,11 @@ const ResizeWrapper = (props: Props) => {
             left += e.clientX - elm.resizeOrg.x;
             break;
           default:
-            // setState((state) => ({
-            //   ...state,
-            //   dir: -1,
-            // }));
             dispatch(
               innerElementsEdit({
                 ...elm,
                 dir: -1,
+                from: 'mousemovedefault',
               })
             );
         }
@@ -109,28 +82,37 @@ const ResizeWrapper = (props: Props) => {
         dispatch(
           innerElementsEdit({
             ...elm,
-            styles: obj.styles,
+            styles: {
+              ...elm.styles,
+              ...obj.styles,
+            },
+            from: 'mousemove',
           })
         );
-        // dispatch(innerElementStyle(obj));
       }
     },
     [elm.resizeOrg]
   );
 
-  const handleWrapperMouseUp = useCallback(() => {
-    // setState((state) => ({
-    //   ...state,
-    //   isResize: false,
-    // }));
+  // const handleWrapperMouseUp = useCallback(() => {
+  //   dispatch(
+  //     innerElementsEdit({
+  //       ...elm,
+  //       isResize: false,
+  //       from: 'mouseup',
+  //     })
+  //   );
+  // }, [elm]);
 
+  const handleWrapperMouseUp = useCallback(() => {
     dispatch(
       innerElementsEdit({
         ...elm,
         isResize: false,
+        from: 'mouseup',
       })
     );
-  }, []);
+  }, [elm]);
 
   useEffect(() => {
     if (elm.isResize) {
@@ -144,28 +126,11 @@ const ResizeWrapper = (props: Props) => {
     };
   }, [elm.isResize, handleWrapperMouseUp, handleWrapperMouseMove]);
 
-  const style = useMemo(
-    (): Partial<React.CSSProperties> => ({
-      cursor: elm.isResize ? 'move' : '',
-      transition: elm.isResize ? 'none' : 'transform 500ms',
-      zIndex: 3,
-      position: elm.isResize ? 'absolute' : 'relative',
-      top: elm.styles.top,
-      left: elm.styles.left,
-      width: 'fit-content',
-      userSelect: elm.isResize ? 'none' : 'element',
-      opacity: elm.isResize ? 0.7 : 1,
-      // border: editorWrapper.isSelected ? '2px solid black' : '',
-      // padding: editorWrapper.isSelected ? 2 : 0,
-      boxShadow: '0 0 0 1px #000',
-    }),
-    [elm.isResize, elm.isSelected]
-  );
-
   const handleSelect = (e: React.MouseEvent) => {
     e.stopPropagation();
     dispatch(isSelectedWrapper(true));
   };
+
   return (
     <div
       onClick={handleSelect}
@@ -174,9 +139,10 @@ const ResizeWrapper = (props: Props) => {
         boxShadow: '0 0 0 1px #000',
         userSelect: elm.isResize ? 'none' : 'element',
         position: 'absolute',
-      }}>
+      }}
+      className="resize-container">
       <div
-        className="relative  w-[100%] h-[100%]"
+        className="resize-inner-container relative  w-[100%] h-[100%]"
         style={{
           ...elm.styles,
           left: 0,

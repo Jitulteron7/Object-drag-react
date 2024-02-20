@@ -76,8 +76,10 @@ const Editor = (props: Props) => {
   ];
 
   useEffect(() => {
-    for (let shape of shapes) {
-      dispatch(addElementInEditor(shape));
+    if (innerElements.length === 0) {
+      for (let shape of shapes) {
+        dispatch(addElementInEditor(shape));
+      }
     }
   }, []);
 

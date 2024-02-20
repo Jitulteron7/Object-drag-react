@@ -9,7 +9,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import {
   EditorInnerElement,
-  innerElementStyle,
   innerElementsEdit,
 } from '../../redux/feature/editor';
 
@@ -36,30 +35,33 @@ const DragWrapper = (props: Props) => {
 
   const dispatch = useDispatch();
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    const { clientX, clientY } = e;
-    const { left, top } = (e.target as Element).getBoundingClientRect();
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      const { clientX, clientY } = e;
+      const { left, top } = (e.target as Element).getBoundingClientRect();
 
-    // setState((state) => ({
-    //   ...state,
-    //   isDragging: true,
-    //   origin: {
-    //     x: clientX - left,
-    //     y: clientY - top,
-    //   },
-    // }));
+      // setState((state) => ({
+      //   ...state,
+      //   isDragging: true,
+      //   origin: {
+      //     x: clientX - left,
+      //     y: clientY - top,
+      //   },
+      // }));
 
-    dispatch(
-      innerElementsEdit({
-        ...elm,
-        isDragging: true,
-        origin: {
-          x: clientX - left,
-          y: clientY - top,
-        },
-      })
-    );
-  }, []);
+      dispatch(
+        innerElementsEdit({
+          ...elm,
+          isDragging: true,
+          origin: {
+            x: clientX - left,
+            y: clientY - top,
+          },
+        })
+      );
+    },
+    [elm]
+  );
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -80,7 +82,10 @@ const DragWrapper = (props: Props) => {
         dispatch(
           innerElementsEdit({
             ...elm,
-            tranlation: translation,
+            tranlation: {
+              ...elm.tranlation,
+              ...translation,
+            },
           })
         );
       }
@@ -97,7 +102,7 @@ const DragWrapper = (props: Props) => {
         isDragging: false,
       })
     );
-  }, []);
+  }, [elm]);
 
   useEffect(() => {
     if (elm.isDragging) {
@@ -135,7 +140,10 @@ const DragWrapper = (props: Props) => {
     dispatch(
       innerElementsEdit({
         ...elm,
-        styles: obj.styles,
+        styles: {
+          ...elm.styles,
+          ...obj.styles,
+        },
       })
     );
   }, [style]);

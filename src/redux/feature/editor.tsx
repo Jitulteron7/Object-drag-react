@@ -80,12 +80,10 @@ export const editorSlice = createSlice({
       };
     },
 
-    innerElementsEdit: (
-      state,
-      action: PayloadAction<Partial<EditorInnerElement>>
-    ) => {
+    innerElementsEdit: (state, action: PayloadAction<any>) => {
       state.value.innerElements = state.value.innerElements.map((innElm) => {
         if (innElm.id === action.payload.id) {
+          console.log({ ...action.payload }, 'state.value.innerElements');
           return {
             ...innElm,
             ...action.payload,
@@ -98,37 +96,7 @@ export const editorSlice = createSlice({
     addElementInEditor: (state, action: PayloadAction<EditorInnerElement>) => {
       state.value.innerElements.push(action.payload);
     },
-    innerElementsOrigin: (
-      state,
-      action: PayloadAction<Partial<EditorInnerElement>>
-    ) => {
-      state.value.innerElements = state.value.innerElements.map((innElm) => {
-        if (innElm.id === action.payload.id) {
-          return {
-            ...innElm,
-            origin: {
-              x: action.payload.origin?.x as number,
-              y: action.payload.origin?.y as number,
-            },
-          };
-        } else {
-          return innElm;
-        }
-      });
-    },
 
-    innerElementOrigin: (
-      state,
-      action: PayloadAction<Partial<EditorInnerElement>>
-    ) => {
-      state.value.innerElement = {
-        ...state.value.innerElement,
-        origin: {
-          x: action.payload.origin?.x as number,
-          y: action.payload.origin?.y as number,
-        },
-      };
-    },
     isSelectedWrapper: (state, action: PayloadAction<boolean>) => {
       state.value.editorWrapper.isSelected = action.payload;
     },

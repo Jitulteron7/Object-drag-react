@@ -1,4 +1,5 @@
 import React, {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -10,6 +11,7 @@ import { RootState } from '../../redux/store';
 import {
   EditorInnerElement,
   innerElementsEdit,
+  isSelectedWrapper,
 } from '../../redux/feature/editor';
 
 type Props = {
@@ -37,6 +39,9 @@ const DragWrapper = (props: Props) => {
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      if (!elm.isSelected) {
+        handleSelect(e);
+      }
       const { clientX, clientY } = e;
       const { left, top } = (e.target as Element).getBoundingClientRect();
 
@@ -65,8 +70,6 @@ const DragWrapper = (props: Props) => {
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      console.log('mouse movement', e.clientX - e.offsetX, e.pageX);
-
       const { clientX, clientY } = e;
       if (elm.isDragging) {
         const translation = {
@@ -94,8 +97,6 @@ const DragWrapper = (props: Props) => {
   );
 
   const handleMouseUp = useCallback(() => {
-    console.log('mouse up');
-
     dispatch(
       innerElementsEdit({
         ...elm,
@@ -149,6 +150,19 @@ const DragWrapper = (props: Props) => {
   }, [style]);
 
   const elmRef = useRef<HTMLDivElement>(null);
+
+  const handleSelect = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      dispatch(
+        isSelectedWrapper({
+          ...elm,
+        })
+      );
+    },
+    [elm]
+  );
+
   return (
     <div
       ref={elmRef}
@@ -156,10 +170,11 @@ const DragWrapper = (props: Props) => {
         width: '100%',
         height: '100%',
       }}
+      onClick={handleSelect}
       onMouseDown={handleMouseDown}>
       {children}
     </div>
   );
 };
 
-export default DragWrapper;
+export default memo(DragWrapper);

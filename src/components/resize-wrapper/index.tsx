@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useDispatch } from 'react-redux';
 import {
   EditorInnerElement,
@@ -13,11 +20,17 @@ type Props = {
 
 const ResizeWrapper = (props: Props) => {
   const { children, elm } = props;
-
+  const midTopRef = useRef<HTMLDivElement>(null);
+  const midRightRef = useRef<HTMLDivElement>(null);
+  const midBottomRef = useRef<HTMLDivElement>(null);
+  const midLeftRef = useRef<HTMLDivElement>(null);
   const dispatch = useDispatch();
 
   const handleWrapperMouseDown = useCallback(
     (e: React.MouseEvent, dir: number) => {
+      if (!elm.isSelected) {
+        handleSelect(e);
+      }
       dispatch(
         innerElementsEdit({
           ...elm,
@@ -27,7 +40,6 @@ const ResizeWrapper = (props: Props) => {
           },
           dir: dir,
           isResize: true,
-          from: 'mousedown',
         })
       );
     },
@@ -65,7 +77,6 @@ const ResizeWrapper = (props: Props) => {
               innerElementsEdit({
                 ...elm,
                 dir: -1,
-                from: 'mousemovedefault',
               })
             );
         }
@@ -78,38 +89,53 @@ const ResizeWrapper = (props: Props) => {
             top: top,
           },
         };
-        // console.log(innerElement.styles, 'from func style');
-        dispatch(
-          innerElementsEdit({
-            ...elm,
-            styles: {
-              ...elm.styles,
-              ...obj.styles,
-            },
-            from: 'mousemove',
-          })
-        );
+
+        if (
+          midBottomRef.current &&
+          midTopRef.current &&
+          midLeftRef.current &&
+          midRightRef.current
+        ) {
+          dispatch(
+            innerElementsEdit({
+              ...elm,
+              pointsRef: {
+                midBottomRef: midBottomRef.current
+                  .getBoundingClientRect()
+                  .toJSON(),
+                midTopRef: midTopRef.current.getBoundingClientRect().toJSON(),
+                midLeftRef: midLeftRef.current.getBoundingClientRect().toJSON(),
+                midRightRef: midRightRef.current
+                  .getBoundingClientRect()
+                  .toJSON(),
+              },
+              styles: {
+                ...elm.styles,
+                ...obj.styles,
+              },
+            })
+          );
+        } else {
+          dispatch(
+            innerElementsEdit({
+              ...elm,
+              styles: {
+                ...elm.styles,
+                ...obj.styles,
+              },
+            })
+          );
+        }
       }
     },
     [elm.resizeOrg]
   );
-
-  // const handleWrapperMouseUp = useCallback(() => {
-  //   dispatch(
-  //     innerElementsEdit({
-  //       ...elm,
-  //       isResize: false,
-  //       from: 'mouseup',
-  //     })
-  //   );
-  // }, [elm]);
 
   const handleWrapperMouseUp = useCallback(() => {
     dispatch(
       innerElementsEdit({
         ...elm,
         isResize: false,
-        from: 'mouseup',
       })
     );
   }, [elm]);
@@ -126,17 +152,58 @@ const ResizeWrapper = (props: Props) => {
     };
   }, [elm.isResize, handleWrapperMouseUp, handleWrapperMouseMove]);
 
-  const handleSelect = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    dispatch(isSelectedWrapper(true));
-  };
+  const handleSelect = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      dispatch(
+        isSelectedWrapper({
+          ...elm,
+        })
+      );
+    },
+    [elm]
+  );
+
+  useEffect(() => {
+    if (
+      midBottomRef.current &&
+      midTopRef.current &&
+      midLeftRef.current &&
+      midRightRef.current
+    ) {
+      if (
+        !elm.pointsRef?.midBottomRef &&
+        !elm.pointsRef?.midLeftRef &&
+        !elm.pointsRef?.midRightRef &&
+        !elm.pointsRef?.midTopRef
+      )
+        dispatch(
+          innerElementsEdit({
+            ...elm,
+            pointsRef: {
+              midBottomRef: midBottomRef.current
+                .getBoundingClientRect()
+                .toJSON(),
+              midTopRef: midTopRef.current.getBoundingClientRect().toJSON(),
+              midLeftRef: midLeftRef.current.getBoundingClientRect().toJSON(),
+              midRightRef: midRightRef.current.getBoundingClientRect().toJSON(),
+            },
+          })
+        );
+    }
+  }, [
+    midTopRef.current,
+    midLeftRef.current,
+    midRightRef.current,
+    midBottomRef.current,
+  ]);
 
   return (
     <div
       onClick={handleSelect}
       style={{
         ...elm.styles,
-        boxShadow: '0 0 0 1px #000',
+        boxShadow: elm.isSelected ? '0 0 0 1px #000' : '0 0 0 0 ',
         userSelect: elm.isResize ? 'none' : 'element',
         position: 'absolute',
       }}
@@ -145,12 +212,18 @@ const ResizeWrapper = (props: Props) => {
         className="resize-inner-container relative  w-[100%] h-[100%]"
         style={{
           ...elm.styles,
+          boxShadow: elm.isSelected ? '0 0 0 1px #000' : '0 0 0 0 ',
           left: 0,
           top: 0,
         }}>
+        {/* mid top */}
+
         <div
+          ref={midTopRef}
           onMouseDown={(e) => handleWrapperMouseDown(e, 0)}
-          className="absolute w-[7px] h-[7px] bg-green-500"
+          className={`absolute w-[7px] h-[7px] bg-green-500  ${
+            elm.isSelected ? 'visible' : 'invisible'
+          }`}
           style={{
             top: '-4px',
             left: 'calc(50% - 2.5px)',
@@ -161,9 +234,15 @@ const ResizeWrapper = (props: Props) => {
             borderRadius: 0,
           }}
         />
+
+        {/* mid right */}
+
         <div
+          ref={midRightRef}
           onMouseDown={(e) => handleWrapperMouseDown(e, 1)}
-          className="absolute w-[7px] h-[7px] bg-green-500"
+          className={`absolute w-[7px] h-[7px] bg-green-500  ${
+            elm.isSelected ? 'visible' : 'invisible'
+          }`}
           style={{
             top: 'calc(50% - 2.5px)',
             left: 'calc(100% - 2.5px)',
@@ -174,9 +253,15 @@ const ResizeWrapper = (props: Props) => {
             borderRadius: 0,
           }}
         />
+
+        {/* mid bottom */}
+
         <div
+          ref={midBottomRef}
           onMouseDown={(e) => handleWrapperMouseDown(e, 2)}
-          className="absolute w-[7px] h-[7px] bg-green-500"
+          className={`absolute w-[7px] h-[7px] bg-green-500  ${
+            elm.isSelected ? 'visible' : 'invisible'
+          }`}
           style={{
             top: 'calc(100% - 2.5px)',
             left: 'calc(50% - 2.5px)',
@@ -187,9 +272,15 @@ const ResizeWrapper = (props: Props) => {
             borderRadius: 0,
           }}
         />
+
+        {/* mid left */}
+
         <div
+          ref={midLeftRef}
           onMouseDown={(e) => handleWrapperMouseDown(e, 3)}
-          className="absolute w-[7px] h-[7px] bg-green-500"
+          className={`absolute w-[7px] h-[7px] bg-green-500  ${
+            elm.isSelected ? 'visible' : 'invisible'
+          }`}
           style={{
             top: 'calc(50% - 2.5px)',
             left: '-2.5px',
@@ -207,4 +298,4 @@ const ResizeWrapper = (props: Props) => {
   );
 };
 
-export default ResizeWrapper;
+export default memo(ResizeWrapper);

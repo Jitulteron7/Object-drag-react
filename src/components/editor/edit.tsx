@@ -19,7 +19,7 @@ const Editor = (props: Props) => {
   );
   const dispatch = useDispatch();
   const handleEditorClick = () => {
-    dispatch(isSelectedWrapper(false));
+    dispatch(isSelectedWrapper(null));
   };
 
   const shapes: EditorInnerElement[] = [
@@ -43,13 +43,19 @@ const Editor = (props: Props) => {
         left: 100,
         top: 100,
       },
+      pointsRef: {
+        midBottomRef: null,
+        midTopRef: null,
+        midLeftRef: null,
+        midRightRef: null,
+      },
       isSelected: false,
       isResize: false,
       isDragging: false,
       dir: -1,
     },
     {
-      id: 'circle',
+      id: 'square1',
       origin: {
         x: 100,
         y: 100,
@@ -61,6 +67,12 @@ const Editor = (props: Props) => {
       resizeOrg: {
         x: 100,
         y: 100,
+      },
+      pointsRef: {
+        midBottomRef: null,
+        midTopRef: null,
+        midLeftRef: null,
+        midRightRef: null,
       },
       styles: {
         height: 100,
@@ -87,20 +99,15 @@ const Editor = (props: Props) => {
     <div
       className="text-black bg-red-500 w-[100vw] h-[100vh]"
       onClick={handleEditorClick}>
-      {/* <ResizeWrapper>
-        <DragWrapper>
-          <Circle />
-        </DragWrapper>
-      </ResizeWrapper> */}
-      {innerElements.map((elm) =>
+      {innerElements.map((elm, idx) =>
         elm.id === 'circle' ? (
-          <ResizeWrapper elm={elm}>
+          <ResizeWrapper key={idx} elm={elm}>
             <DragWrapper elm={elm}>
               <Circle />
             </DragWrapper>
           </ResizeWrapper>
         ) : (
-          <ResizeWrapper elm={elm}>
+          <ResizeWrapper key={idx} elm={elm}>
             <DragWrapper elm={elm}>
               <Square />
             </DragWrapper>

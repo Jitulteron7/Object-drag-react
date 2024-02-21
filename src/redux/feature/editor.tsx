@@ -21,6 +21,12 @@ export interface EditorInnerElement {
     y: number;
   };
 
+  pointsRef?: {
+    midBottomRef: any;
+    midTopRef: any;
+    midLeftRef: any;
+    midRightRef: any;
+  };
   dir?: number;
   isResize?: boolean;
   isSelected?: boolean;
@@ -49,6 +55,12 @@ const initialState: EditorState = {
         x: 100,
         y: 100,
       },
+      pointsRef: {
+        midBottomRef: null,
+        midTopRef: null,
+        midLeftRef: null,
+        midRightRef: null,
+      },
       styles: {
         height: 100,
         width: 100,
@@ -67,23 +79,11 @@ export const editorSlice = createSlice({
   name: 'editor',
   initialState,
   reducers: {
-    innerElementStyle: (
-      state,
-      action: PayloadAction<Partial<EditorInnerElement>>
-    ) => {
-      state.value.innerElement = {
-        ...state.value.innerElement,
-        styles: {
-          ...state.value.innerElement.styles,
-          ...action.payload.styles,
-        },
-      };
-    },
-
     innerElementsEdit: (state, action: PayloadAction<any>) => {
+      // console.log(action.payload, 'payload');
+
       state.value.innerElements = state.value.innerElements.map((innElm) => {
         if (innElm.id === action.payload.id) {
-          console.log({ ...action.payload }, 'state.value.innerElements');
           return {
             ...innElm,
             ...action.payload,
@@ -94,11 +94,37 @@ export const editorSlice = createSlice({
       });
     },
     addElementInEditor: (state, action: PayloadAction<EditorInnerElement>) => {
-      state.value.innerElements.push(action.payload);
+      const elm = action.payload;
+      state.value.innerElements.push(elm as any);
     },
 
-    isSelectedWrapper: (state, action: PayloadAction<boolean>) => {
-      state.value.editorWrapper.isSelected = action.payload;
+    isSelectedWrapper: (
+      state,
+      action: PayloadAction<EditorInnerElement | null>
+    ) => {
+      if (action?.payload !== null) {
+        state.value.innerElements = state.value.innerElements.map((innElm) => {
+          if (innElm.id === action.payload?.id) {
+            return {
+              ...innElm,
+              isSelected: true,
+            };
+          } else {
+            return {
+              ...innElm,
+              isSelected: false,
+            };
+          }
+        });
+        return;
+      }
+
+      state.value.innerElements = state.value.innerElements.map((innElm) => {
+        return {
+          ...innElm,
+          isSelected: false,
+        };
+      });
     },
   },
 });
@@ -106,7 +132,7 @@ export const editorSlice = createSlice({
 // Action creators are generated for each case reducer function
 export const {
   isSelectedWrapper,
-  innerElementStyle,
+
   addElementInEditor,
   innerElementsEdit,
 } = editorSlice.actions;

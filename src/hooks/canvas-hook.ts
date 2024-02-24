@@ -1,10 +1,5 @@
 import { useEffect, useRef } from 'react';
 
-type Point = {
-  x: number;
-  y: number;
-} | null;
-
 export const useCanvasHook = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 

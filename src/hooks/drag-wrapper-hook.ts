@@ -56,7 +56,7 @@ export const useDragHook = (elm: EditorInnerElement) => {
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
       const { clientX, clientY } = e;
-      console.log(midBottomRef.current, 'midBottomRef.current');
+
       if (elm.isDragging) {
         const translation = {
           x: clientX - elm.origin.x,

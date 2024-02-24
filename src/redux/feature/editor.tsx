@@ -9,6 +9,13 @@ export interface EditorState {
   };
 }
 
+export interface PointsRef {
+  midBottomRef: { x: number; y: number } | null;
+  midTopRef: { x: number; y: number } | null;
+  midLeftRef: { x: number; y: number } | null;
+  midRightRef: { x: number; y: number } | null;
+}
+
 export interface EditorInnerElement {
   id?: string;
   origin: {
@@ -21,12 +28,7 @@ export interface EditorInnerElement {
     y: number;
   };
 
-  pointsRef?: {
-    midBottomRef: any;
-    midTopRef: any;
-    midLeftRef: any;
-    midRightRef: any;
-  };
+  pointsRef?: PointsRef;
   dir?: number;
   isResize?: boolean;
   isSelected?: boolean;

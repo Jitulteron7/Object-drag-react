@@ -131,7 +131,7 @@ const ResizeWrapper = (props: Props) => {
           }`}
           style={{
             top: 'calc(50% - 2.5px)',
-            left: '-2.5px',
+            left: '-4.5px',
             zIndex: 2,
             cursor: 'w-resize',
             pointerEvents: 'all',

@@ -3,6 +3,7 @@ import {
   EditorInnerElement,
   innerElementsEdit,
   isSelectedWrapper,
+  setActiveElm,
 } from '../redux/feature/editor';
 import { useDispatch } from 'react-redux';
 
@@ -38,17 +39,17 @@ export const useDragHook = (elm: EditorInnerElement) => {
       }
       const { clientX, clientY } = e;
       const { left, top } = (e.target as Element).getBoundingClientRect();
+      const updatedElm = {
+        ...elm,
+        isDragging: true,
+        origin: {
+          x: clientX - left,
+          y: clientY - top,
+        },
+      };
 
-      dispatch(
-        innerElementsEdit({
-          ...elm,
-          isDragging: true,
-          origin: {
-            x: clientX - left,
-            y: clientY - top,
-          },
-        })
-      );
+      dispatch(innerElementsEdit(updatedElm));
+      dispatch(setActiveElm(updatedElm));
     },
     [elm]
   );
@@ -63,42 +64,41 @@ export const useDragHook = (elm: EditorInnerElement) => {
           y: clientY - elm.origin.y,
         };
 
+        let updatedElm;
+
         if (
           midBottomRef.current &&
           midTopRef.current &&
           midLeftRef.current &&
           midRightRef.current
         ) {
-          dispatch(
-            innerElementsEdit({
-              ...elm,
-              pointsRef: {
-                midBottomRef: midBottomRef.current
-                  .getBoundingClientRect()
-                  .toJSON(),
-                midTopRef: midTopRef.current.getBoundingClientRect().toJSON(),
-                midLeftRef: midLeftRef.current.getBoundingClientRect().toJSON(),
-                midRightRef: midRightRef.current
-                  .getBoundingClientRect()
-                  .toJSON(),
-              },
-              tranlation: {
-                ...elm.tranlation,
-                ...translation,
-              },
-            })
-          );
+          updatedElm = {
+            ...elm,
+            pointsRef: {
+              midBottomRef: midBottomRef.current
+                .getBoundingClientRect()
+                .toJSON(),
+              midTopRef: midTopRef.current.getBoundingClientRect().toJSON(),
+              midLeftRef: midLeftRef.current.getBoundingClientRect().toJSON(),
+              midRightRef: midRightRef.current.getBoundingClientRect().toJSON(),
+            },
+            tranlation: {
+              ...elm.tranlation,
+              ...translation,
+            },
+          };
         } else {
-          dispatch(
-            innerElementsEdit({
-              ...elm,
-              tranlation: {
-                ...elm.tranlation,
-                ...translation,
-              },
-            })
-          );
+          updatedElm = {
+            ...elm,
+            tranlation: {
+              ...elm.tranlation,
+              ...translation,
+            },
+          };
         }
+
+        dispatch(innerElementsEdit(updatedElm));
+        dispatch(setActiveElm(updatedElm));
       }
     },
     [elm.origin]
@@ -111,6 +111,7 @@ export const useDragHook = (elm: EditorInnerElement) => {
         isDragging: false,
       })
     );
+    dispatch(setActiveElm(null));
   }, [elm]);
 
   useEffect(() => {

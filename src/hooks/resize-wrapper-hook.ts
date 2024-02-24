@@ -3,6 +3,7 @@ import {
   EditorInnerElement,
   innerElementsEdit,
   isSelectedWrapper,
+  setActiveElm,
 } from '../redux/feature/editor';
 import { useDispatch } from 'react-redux';
 
@@ -36,17 +37,19 @@ export const useResizeHook = (elm: EditorInnerElement) => {
       if (!elm.isSelected) {
         handleSelect(e);
       }
-      dispatch(
-        innerElementsEdit({
-          ...elm,
-          resizeOrg: {
-            x: e.clientX,
-            y: e.clientY,
-          },
-          dir: dir,
-          isResize: true,
-        })
-      );
+
+      const updatedElm = {
+        ...elm,
+        resizeOrg: {
+          x: e.clientX,
+          y: e.clientY,
+        },
+        dir: dir,
+        isResize: true,
+      };
+      dispatch(innerElementsEdit(updatedElm));
+
+      dispatch(setActiveElm(updatedElm));
     },
     [elm]
   );
@@ -95,42 +98,39 @@ export const useResizeHook = (elm: EditorInnerElement) => {
           },
         };
 
+        let updatedElm;
         if (
           midBottomRef.current &&
           midTopRef.current &&
           midLeftRef.current &&
           midRightRef.current
         ) {
-          dispatch(
-            innerElementsEdit({
-              ...elm,
-              pointsRef: {
-                midBottomRef: midBottomRef.current
-                  .getBoundingClientRect()
-                  .toJSON(),
-                midTopRef: midTopRef.current.getBoundingClientRect().toJSON(),
-                midLeftRef: midLeftRef.current.getBoundingClientRect().toJSON(),
-                midRightRef: midRightRef.current
-                  .getBoundingClientRect()
-                  .toJSON(),
-              },
-              styles: {
-                ...elm.styles,
-                ...obj.styles,
-              },
-            })
-          );
+          updatedElm = {
+            ...elm,
+            pointsRef: {
+              midBottomRef: midBottomRef.current
+                .getBoundingClientRect()
+                .toJSON(),
+              midTopRef: midTopRef.current.getBoundingClientRect().toJSON(),
+              midLeftRef: midLeftRef.current.getBoundingClientRect().toJSON(),
+              midRightRef: midRightRef.current.getBoundingClientRect().toJSON(),
+            },
+            styles: {
+              ...elm.styles,
+              ...obj.styles,
+            },
+          };
         } else {
-          dispatch(
-            innerElementsEdit({
-              ...elm,
-              styles: {
-                ...elm.styles,
-                ...obj.styles,
-              },
-            })
-          );
+          updatedElm = {
+            ...elm,
+            styles: {
+              ...elm.styles,
+              ...obj.styles,
+            },
+          };
         }
+        dispatch(innerElementsEdit(updatedElm));
+        dispatch(setActiveElm(updatedElm));
       }
     },
     [elm.resizeOrg]
@@ -143,6 +143,7 @@ export const useResizeHook = (elm: EditorInnerElement) => {
         isResize: false,
       })
     );
+    dispatch(setActiveElm(null));
   }, [elm]);
 
   useEffect(() => {
